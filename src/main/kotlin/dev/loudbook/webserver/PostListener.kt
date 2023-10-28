@@ -18,9 +18,7 @@ class PostListener(private val root: Path) : HttpHandler {
         try {
             val filename: String = exchange.requestHeaders.getFirst("filename")
 
-            if (!authenticator.authenticate(exchange)) {
-                println("Nope.")
-            }
+            if (!authenticator.authenticate(exchange)) return
 
             val path = root.resolve("files/").resolve(filename)
 
