@@ -8,6 +8,7 @@ import kotlin.io.path.exists
 
 class MinecraftRedirectListener(private val root: Path) : HttpHandler {
     private val links = mutableMapOf<String, String>()
+    private val authenticator = Authenticator()
 
     init {
         updateLinks()
@@ -27,8 +28,14 @@ class MinecraftRedirectListener(private val root: Path) : HttpHandler {
                 return
             }
 
-            val redirectResponse =
-                "<html><body>Redirecting to <a href=\"$redirectUrl\">$redirectUrl</a></body></html>"
+            val redirectResponse = """
+                <title>Loudbook's Redirects</title>
+                <meta content="Loudbook's Redirects" property="og:title" />
+                <meta content="This redirects to $redirectUrl" property="og:description" />
+                <meta content="$redirectUrl" property="og:url" />
+                <meta content="$redirectUrl" property="og:image" />
+                <meta content="#2e3035" data-react-helmet="true" name="theme-color" />
+            """.trimIndent()
 
             exchange.responseHeaders.set("Location", redirectUrl)
             exchange.sendResponseHeaders(302, redirectResponse.length.toLong())
@@ -42,13 +49,9 @@ class MinecraftRedirectListener(private val root: Path) : HttpHandler {
             try {
                 println("Received upload request from ${exchange.remoteAddress}")
 
-                if (!Authenticator.authenticate(exchange)) {
-                    println("Rejected upload attempt from ${exchange.remoteAddress}")
-                    return
-                }
+                if (!authenticator.authenticate(exchange)) return
 
                 val filename = "links.txt"
-
                 val path = root.resolve("mc/").resolve(filename)
 
                 if (path.exists()) {
