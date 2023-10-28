@@ -17,7 +17,15 @@ class MinecraftRedirectListener(private val root: Path) : HttpHandler {
         exchange ?: return
 
         if (!exchange.requestMethod.equals("POST")) {
-            val redirectUrl = links[exchange.requestURI.toString().replace("/mcredirect", "")] ?: return
+            val redirectUrl = links[exchange.requestURI.toString().replace("/mcredirect", "")] ?: run {
+                val invalidResponse =
+                    "<html><body>Invalid link.</body></html>"
+
+                exchange.sendResponseHeaders(400, invalidResponse.length.toLong())
+                exchange.responseBody.use { os -> os.write(invalidResponse.encodeToByteArray()) }
+
+                return
+            }
 
             val redirectResponse =
                 "<html><body>Redirecting to <a href=\"$redirectUrl\">$redirectUrl</a></body></html>"
