@@ -12,13 +12,14 @@ class Main {
         fun main(args: Array<String>) {
             val address = InetSocketAddress("0.0.0.0", 8081)
 
-            val root: Path = Path.of("/home/loudbook/files/")
+            val root: Path = Path.of("/home/loudbook/")
 
             SimpleFileServer.createFileServer(address, root, SimpleFileServer.OutputLevel.VERBOSE).start()
 
             val uploadAddress = InetSocketAddress("0.0.0.0", 8082)
 
             val httpServer = HttpServer.create(uploadAddress, 0)
+            httpServer.createContext("/mcredirect", MinecraftRedirectListener(root))
             httpServer.createContext("/upload", PostListener(root))
 
             httpServer.start()
