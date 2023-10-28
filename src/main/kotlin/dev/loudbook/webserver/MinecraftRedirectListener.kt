@@ -51,13 +51,14 @@ class MinecraftRedirectListener(private val root: Path) : HttpHandler {
 
                 Files.newOutputStream(path).use { os ->
                     exchange.requestBody.transferTo(os)
-                    updateLinks()
                 }
 
                 val response = "File uploaded successfully: $filename"
 
                 exchange.sendResponseHeaders(200, response.encodeToByteArray().size.toLong())
                 exchange.responseBody.use { os -> os.write(response.encodeToByteArray()) }
+
+                updateLinks()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
