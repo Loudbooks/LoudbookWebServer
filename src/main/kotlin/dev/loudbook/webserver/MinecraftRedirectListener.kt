@@ -94,8 +94,8 @@ class MinecraftRedirectListener(private val root: Path) : HttpHandler {
         val fileContents = Files.readAllLines(root.resolve("mc/").resolve("links.txt"))
 
         for (fileContent in fileContents) {
-            val key = fileContent.split("\":\"")[0].replace("\"", "")
-            val value = fileContent.split("\":\"")[1].replace("\"", "")
+            val key = fileContent.split("\":\"")[0].replace("\"", "").trim()
+            val value = fileContent.split("\":\"")[1].replace("\"", "").trim()
 
             links[key] = value
             println("Loaded link: $key -> $value")
