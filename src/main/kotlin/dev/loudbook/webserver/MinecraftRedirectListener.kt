@@ -19,24 +19,38 @@ class MinecraftRedirectListener(private val root: Path) : HttpHandler {
 
         if (!exchange.requestMethod.equals("POST")) {
             val redirectUrl = links[exchange.requestURI.toString().replace("/mcredirect", "")] ?: run {
-                val invalidResponse =
-                    "<html><body>Invalid link.</body></html>"
 
-                exchange.sendResponseHeaders(400, invalidResponse.length.toLong())
+                val invalidResponse ="""
+                <head>
+                <title>Loudbook's Redirects</title>
+                <meta content="Invalid Redirect" property="og:title" />
+                <meta content="Please ensure you are using the right key." property="og:description" />
+                <meta content="#FF0000" data-react-helmet="true" name="theme-color" />
+                </head>
+                <body>This redirect is invalid!</body>
+            """.trimIndent()
+
+                exchange.responseHeaders.set("Content-Type", "text/html")
+
+                exchange.sendResponseHeaders(200, invalidResponse.length.toLong()) // We send 200 to force discord to show an embed.
                 exchange.responseBody.use { os -> os.write(invalidResponse.encodeToByteArray()) }
 
                 return
             }
 
             val redirectResponse = """
+                <head>
                 <title>Loudbook's Redirects</title>
                 <meta content="Loudbook's Redirects" property="og:title" />
                 <meta content="This redirects to $redirectUrl" property="og:description" />
                 <meta content="$redirectUrl" property="og:url" />
                 <meta content="$redirectUrl" property="og:image" />
                 <meta content="#2e3035" data-react-helmet="true" name="theme-color" />
+                <body>Rerouting to <a href="$redirectUrl">$redirectUrl</a></body>
+                </head>
             """.trimIndent()
 
+            exchange.responseHeaders.set("Content-Type", "text/html")
             exchange.responseHeaders.set("Location", redirectUrl)
             exchange.sendResponseHeaders(302, redirectResponse.length.toLong())
 
